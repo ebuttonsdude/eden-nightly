@@ -2,7 +2,7 @@
 
 set -ex
 
-export ARCH="$(uname -m)"
+export ARCH="amd64"
 export CC=clang20
 export CXX=clang++20
 export LD=ld.lld20
@@ -17,8 +17,14 @@ git apply ../patches/update.patch
 #tempfix, remove when upstream fixed
 # git apply ../patches/tempfix.patch
 
+if [ "$TARGET" = "Solaris" ]; then
+    QT6_DIR="$(find /usr -name Qt6Config.cmake 2>/dev/null | head -n1 | xargs dirname)"
+elif [ "$TARGET" = "FreeBSD" ]; then
+    QT6_DIR="/usr/local/lib/cmake/Qt6"
+fi
+
 declare -a EXTRA_CMAKE_FLAGS=()
-if [[ "${TARGET}" == "FreeBSD-PGO" ]]; then
+if [[ "${OPTIMIZE}" == "PGO" ]]; then
     EXTRA_CMAKE_FLAGS+=(
         "-DCMAKE_CXX_FLAGS=-O3 -pipe -fuse-ld=lld -fprofile-use=${GITHUB_WORKSPACE}/pgo/eden.profdata -fprofile-correction -w"
         "-DCMAKE_C_FLAGS=-O3 -pipe -fuse-ld=lld -fprofile-use=${GITHUB_WORKSPACE}/pgo/eden.profdata -fprofile-correction -w"
@@ -44,9 +50,8 @@ cmake .. -GNinja \
     -DUSE_DISCORD_PRESENCE=OFF \
     -DYUZU_CMD=OFF \
     -DYUZU_ROOM_STANDALONE=OFF \
-    -DCMAKE_SYSTEM_PROCESSOR="$(uname -m)" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DQt6_DIR=/usr/local/lib/cmake/Qt6 \
+    -DQt6_DIR="${QT6_DIR}" \
     "${EXTRA_CMAKE_FLAGS[@]}"
 ninja
 
@@ -112,7 +117,7 @@ find "${PKG_DIR}/lib" -type f -name '*.so*' -exec strip {} \;
 # Create a laucher for the pack
 cat > "${PKG_NAME}/launch.sh" <<EOF
 #!/bin/sh
-# Eden Launcher for FreeBSD
+# Eden Launcher for "${TARGET}"
 
 DIR=\$(dirname "\$0")/usr/local
 
