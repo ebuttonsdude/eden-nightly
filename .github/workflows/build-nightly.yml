@@ -15,7 +15,7 @@ on:
           - appimage
           - macos
           - android
-          - freebsd
+          - bsd
           - info
         default: 'all'
 
@@ -317,16 +317,17 @@ jobs:
           path: ${{ env.CCACHE_DIR }}
           key: ${{ steps.restore-ccache-cache.outputs.cache-primary-key }}
 
-  freebsd:
-    if: github.event.inputs.job_to_run == 'all' || github.event.inputs.job_to_run == 'freebsd'
-    name: FreeBSD
+  bsd:
+    if: github.event.inputs.job_to_run == 'all' || github.event.inputs.job_to_run == 'bsd'
+    name: ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [FreeBSD, FreeBSD-PGO]
+        target: [FreeBSD, Solaris]
+        optimize: [normal, PGO]
     continue-on-error: true
     env:
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      OPTIMIZE: ${{ matrix.optimize }}
       TARGET: ${{ matrix.target }}
     steps:
       - name: Checkout repository
@@ -336,26 +337,37 @@ jobs:
         run: |
           git clone 'https://git.eden-emu.dev/eden-emu/eden.git' ./eden
 
-      - name: Compile Eden FreeBSD
+      - name: Compile Eden ${{ matrix.target }}
+        if: matrix.target == 'FreeBSD'
         uses: vmactions/freebsd-vm@v1.2.4
         with:
           usesh: true
-          envs: 'CCACHE_DIR TARGET'
+          envs: 'OPTIMIZE TARGET'
           run: |
-            chmod +x ./freeBSD-dependencies.sh ./eden-freeBSD.sh
-            ./freeBSD-dependencies.sh
-            ./eden-freeBSD.sh
+            chmod +x ./BSD-dependencies.sh ./eden-BSD.sh
+            ./BSD-dependencies.sh
+            ./eden-BSD.sh
+
+      - name: Compile Eden ${{ matrix.target }}
+        if: matrix.target == 'Solaris'
+        uses: vmactions/solaris-vm@v1.1.5
+        with:
+          usesh: true
+          envs: 'OPTIMIZE TARGET'
+          run: |
+            chmod +x ./BSD-dependencies.sh ./eden-BSD.sh
+            ./BSD-dependencies.sh && ./eden-BSD.sh
 
       - name: Upload
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: eden-${{ matrix.target }}
+          name: eden-${{ matrix.target }}-${{ matrix.optimize }}
           path: eden/build/artifacts/
 
   release:
     if: github.ref_name == 'main' && github.event.inputs.job_to_run == 'all'
     name: "release"
-    needs: [info, appimage, windows, macos, android, freebsd]
+    needs: [info, appimage, windows, macos, android, bsd]
     permissions:
       actions: read
       security-events: write
