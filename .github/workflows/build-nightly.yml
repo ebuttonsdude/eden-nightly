@@ -17,12 +17,12 @@ on:
           - android
           - freebsd
           - info
-        default: 'all'
+        default: 'appimage'
 
 jobs:
   info:
     if: github.event.inputs.job_to_run == 'all' || github.event.inputs.job_to_run == 'info'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: "Get info"
     strategy:
       matrix:
@@ -79,34 +79,34 @@ jobs:
       matrix:
         include:
           - target: steamdeck
-            runs-on: ubuntu-latest
+            runs-on: self-hosted
             ccache: 'true'
           - target: rog
-            runs-on: ubuntu-latest
+            runs-on: self-hosted
             ccache: 'true'
           - target: common
-            runs-on: ubuntu-latest
+            runs-on: self-hosted
             ccache: 'true'
           - target: legacy
-            runs-on: ubuntu-latest
+            runs-on: self-hosted
             ccache: 'true'
           - target: aarch64
-            runs-on: ubuntu-24.04-arm
+            runs-on: self-hosted
             ccache: 'true'
           - target: steamdeck-pgo
-            runs-on: ubuntu-latest
+            runs-on: self-hosted
             ccache: 'flase'
           - target: rog-pgo
-            runs-on: ubuntu-latest
+            runs-on: self-hosted
             ccache: 'flase'
           - target: common-pgo
-            runs-on: ubuntu-latest
+            runs-on: self-hosted
             ccache: 'flase'
           - target: legacy-pgo
-            runs-on: ubuntu-latest
+            runs-on: self-hosted
             ccache: 'flase'
           - target: aarch64-pgo
-            runs-on: ubuntu-24.04-arm
+            runs-on: self-hosted
             ccache: 'flase'
     container: ghcr.io/pkgforge-dev/archlinux:latest
     name: "Appimage (${{ matrix.target }})"
