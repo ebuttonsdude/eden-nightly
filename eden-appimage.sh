@@ -14,8 +14,8 @@ PELF="https://github.com/xplshn/pelf/releases/latest/download/pelf_$ARCH"
 case "$1" in
     common-pgo)
         echo "Making Eden PGO Optimized Build for Modern CPUs"
-        CMAKE_CXX_FLAGS="-march=native -O3 -pipe -flto=thin -fuse-ld=lld -fprofile-use=${GITHUB_WORKSPACE}/pgo/eden.profdata -fprofile-correction -w"
-        CMAKE_C_FLAGS="-march=native -O3 -pipe -flto=thin -fuse-ld=lld -fprofile-use=${GITHUB_WORKSPACE}/pgo/eden.profdata -fprofile-correction -w"
+        CMAKE_CXX_FLAGS="-march=znver5 -mtune=znver5 -O3 -pipe -flto=thin -fuse-ld=lld -fprofile-use=${GITHUB_WORKSPACE}/pgo/eden.profdata -fprofile-correction -w"
+        CMAKE_C_FLAGS="-march=znver5 -mtune=znver5 -O3 -pipe -flto=thin -fuse-ld=lld -fprofile-use=${GITHUB_WORKSPACE}/pgo/eden.profdata -fprofile-correction -w"
         TARGET="Common-PGO"
   		CC="clang"
 		CXX="clang++"
